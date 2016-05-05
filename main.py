@@ -124,7 +124,7 @@ class BotHandler:
     def info_mark(bot, update, args):
         chat_id = update.message.chat_id
         result = BotHandler.get_message(chat_id, args)
-        text = None
+        text = ""
         if result and result.count() > 0:
             mark = Mark(result[0])
             reply = mark.message_id
