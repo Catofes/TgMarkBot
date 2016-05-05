@@ -82,13 +82,15 @@ class BotHandler:
         result = collection.find({"chat_id": chat_id}).sort("add_time", pymongo.DESCENDING)
         totally_num = result.count()
         totally_page = int(math.ceil(totally_num / 10))
-        show_page = 0
+        show_page = 1
         if len(args) > 0:
             show_page = int(args[0])
             if show_page > totally_page:
                 show_page = totally_page
-        text = "Page " + str(show_page + 1) + " of " + str(totally_page) + "\n"
-        for i in range(show_page * 10, (show_page + 1) * 10):
+            if show_page < 1:
+                show_page = 1
+        text = "Page " + str(show_page) + " of " + str(totally_page) + "\n"
+        for i in range((show_page - 1) * 10, (show_page) * 10):
             try:
                 mark = Mark(result[i])
                 text += "Id: "
@@ -190,7 +192,7 @@ class BotHandler:
 
     def loop(self):
         dispatcher = self.updater.dispatcher
-        dispatcher.bot.setWebhook(config.url)
+        dispatcher.bot.setWebhook("")
         dispatcher.addHandler(CommandHandler("add", self.add_mark))
         dispatcher.addHandler(MessageHandler([self.message_filter], self.message_handler))
         dispatcher.addHandler(CommandHandler("show", self.show_mark, pass_args=True))
@@ -199,8 +201,9 @@ class BotHandler:
         dispatcher.addHandler(CommandHandler("del", self.del_mark, pass_args=True))
         dispatcher.addHandler(CommandHandler("help", self.help))
         dispatcher.addErrorHandler(self.error)
-        self.updater.start_webhook(listen=config.ip, port=config.port, url_path=config.secret,
-                                   webhook_url=config.url)
+        # self.updater.start_webhook(listen=config.ip, port=config.port, url_path=config.secret,
+        #                           webhook_url=config.url)
+        self.updater.start_polling()
         self.updater.idle()
 
 
