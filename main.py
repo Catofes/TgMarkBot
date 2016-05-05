@@ -5,7 +5,6 @@ import time
 import config
 import math
 import datetime
-import telegram.messageentity
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
@@ -149,6 +148,7 @@ class BotHandler:
         chat_id = update.message.chat_id
         reply = update.message.message_id
         text = """
+        \n
         Use \\add to mark a message. \n
         Use \\del to del a mark. \n
         Use \\list [page] to show marks\n
@@ -190,6 +190,7 @@ class BotHandler:
 
     def loop(self):
         dispatcher = self.updater.dispatcher
+        dispatcher.bot.setWebhook(config.url)
         dispatcher.addHandler(CommandHandler("add", self.add_mark))
         dispatcher.addHandler(MessageHandler([self.message_filter], self.message_handler))
         dispatcher.addHandler(CommandHandler("show", self.show_mark, pass_args=True))
