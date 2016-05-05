@@ -198,7 +198,7 @@ class BotHandler:
         dispatcher.addHandler(CommandHandler("del", self.del_mark, pass_args=True))
         dispatcher.addHandler(CommandHandler("help", self.help))
         dispatcher.addErrorHandler(self.error)
-        self.updater.start_webhook(listen='127.0.0.1', port=8001, url_path=config.secret,
+        self.updater.start_webhook(listen=config.ip, port=config.port, url_path=config.secret,
                                    webhook_url=config.url)
         self.updater.idle()
 

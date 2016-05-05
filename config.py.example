@@ -2,3 +2,5 @@ token = ""
 name = ""
 secret = ""
 url = "http://127.0.0.1:8001/secret"
+port = 10023
+ip = "0.0.0.0"
