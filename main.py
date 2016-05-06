@@ -83,9 +83,14 @@ class BotHandler:
         result = collection.find({"chat_id": chat_id}).sort("add_time", pymongo.DESCENDING)
         totally_num = result.count()
         totally_page = int(math.ceil(totally_num / 10))
+        if totally_page == 0:
+            totally_page = 1
         show_page = 1
         if len(args) > 0:
-            show_page = int(args[0])
+            try:
+                show_page = int(args[0])
+            except ValueError:
+                show_page = 1
             if show_page > totally_page:
                 show_page = totally_page
             if show_page < 1:
