@@ -96,7 +96,7 @@ class BotHandler:
             if show_page < 1:
                 show_page = 1
         text = "Page " + str(show_page) + " of " + str(totally_page) + "\n"
-        for i in range((show_page - 1) * 10, (show_page) * 10):
+        for i in range((show_page - 1) * 10, show_page * 10):
             try:
                 mark = Mark(result[i])
                 text += "Id: "
@@ -194,7 +194,7 @@ class BotHandler:
             mark.message = update.message.to_dict()
         if not collection.find_one({"chat_id": mark.chat_id, "message_id": mark.message_id}):
             collection.insert(mark.__dict__)
-        text = "Message " + str(update.message.message_id) + " have been saved."
+        text = "Message " + str(reply) + " have been saved."
         bot.sendMessage(update.message.chat_id, reply_to_message_id=reply, text=text)
 
     def loop(self):
