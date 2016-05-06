@@ -38,7 +38,8 @@ class BotHandler:
         mark.chat_id = update.message.chat_id
         mark.message_id = update.message.message_id
         mark.message = update.message.to_dict()
-        collection.insert(mark.__dict__)
+        if not collection.find_one({"chat_id": mark.chat_id, "message_id": mark.message_id}):
+            collection.insert(mark.__dict__)
         text = "Message " + str(update.message.message_id) + " have been saved."
         bot.sendMessage(update.message.chat_id, reply_to_message_id=update.message.message_id, text=text)
 
@@ -151,11 +152,11 @@ class BotHandler:
         reply = update.message.message_id
         text = """
         \n
-        Use \\add to mark a message. \n
-        Use \\del to del a mark. \n
-        Use \\list [page] to show marks\n
-        Use \\show [message_id]/[uuid] to show that message. \n
-        Use \\info [message_id]/[uuid] to show that message info.\n
+        Use \\addm to mark a message. \n
+        Use \\delm to del a mark. \n
+        Use \\listm [page] to show marks\n
+        Use \\showm [message_id]/[uuid] to show that message. \n
+        Use \\infom [message_id]/[uuid] to show that message info.\n
         """
         bot.sendMessage(update.message.chat_id, reply_to_message_id=reply, text=text)
 
@@ -186,24 +187,25 @@ class BotHandler:
             mark.chat_id = update.message.chat_id
             mark.message_id = update.message.message_id
             mark.message = update.message.to_dict()
-        collection.insert(mark.__dict__)
+        if not collection.find_one({"chat_id": mark.chat_id, "message_id": mark.message_id}):
+            collection.insert(mark.__dict__)
         text = "Message " + str(update.message.message_id) + " have been saved."
         bot.sendMessage(update.message.chat_id, reply_to_message_id=reply, text=text)
 
     def loop(self):
         dispatcher = self.updater.dispatcher
-        dispatcher.bot.setWebhook("")
-        dispatcher.addHandler(CommandHandler("add", self.add_mark))
+        dispatcher.bot.setWebhook(config.url)
+        dispatcher.addHandler(CommandHandler("addm", self.add_mark))
         dispatcher.addHandler(MessageHandler([self.message_filter], self.message_handler))
-        dispatcher.addHandler(CommandHandler("show", self.show_mark, pass_args=True))
-        dispatcher.addHandler(CommandHandler("list", self.list_mark, pass_args=True))
-        dispatcher.addHandler(CommandHandler("info", self.info_mark, pass_args=True))
-        dispatcher.addHandler(CommandHandler("del", self.del_mark, pass_args=True))
+        dispatcher.addHandler(CommandHandler("showm", self.show_mark, pass_args=True))
+        dispatcher.addHandler(CommandHandler("listm", self.list_mark, pass_args=True))
+        dispatcher.addHandler(CommandHandler("infom", self.info_mark, pass_args=True))
+        dispatcher.addHandler(CommandHandler("delm", self.del_mark, pass_args=True))
         dispatcher.addHandler(CommandHandler("help", self.help))
         dispatcher.addErrorHandler(self.error)
-        # self.updater.start_webhook(listen=config.ip, port=config.port, url_path=config.secret,
-        #                           webhook_url=config.url)
-        self.updater.start_polling()
+        self.updater.start_webhook(listen=config.ip, port=config.port, url_path=config.secret,
+                                   webhook_url=config.url)
+        # self.updater.start_polling()
         self.updater.idle()
 
 
