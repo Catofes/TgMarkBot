@@ -40,12 +40,11 @@ class MessageFilter(BaseFilter):
 
 class BotHandler:
     def __init__(self):
-        self.db = pymongo.MongoClient().telegram
+        self.db = pymongo.MongoClient(config.db).telegram
         self.updater = Updater(config.token)
 
-    @staticmethod
-    def add_mark(bot, update):
-        collection = pymongo.MongoClient().telegram.mark
+    def add_mark(self, bot, update):
+        collection = self.db.mark
         mark = Mark()
         mark.chat_id = update.message.chat_id
         mark.message_id = update.message.message_id
@@ -55,9 +54,8 @@ class BotHandler:
         text = "Message " + str(update.message.message_id) + " have been saved."
         bot.sendMessage(update.message.chat_id, reply_to_message_id=update.message.message_id, text=text)
 
-    @staticmethod
-    def get_message(chat_id, args):
-        collection = pymongo.MongoClient().telegram.mark
+    def get_message(self, chat_id, args):
+        collection = self.db.mark
         result = None
         if len(args) == 0:
             result = collection.find({"chat_id": chat_id}).sort("add_time", pymongo.DESCENDING)
@@ -70,16 +68,15 @@ class BotHandler:
                 result = collection.find({"uuid": args[0]})
         return result
 
-    @staticmethod
-    def del_mark(bot, update, args):
+    def del_mark(self, bot, update, args):
         chat_id = update.message.chat_id
         reply = update.message.message_id
         deleted = []
         for arg in args:
-            result = BotHandler.get_message(chat_id, [arg])
+            result = self.get_message(chat_id, [arg])
             if result and result.count() == 1:
                 mark = Mark(result[0])
-                pymongo.MongoClient().telegram.mark.remove({"uuid": mark.uuid})
+                self.db.mark.mark.remove({"uuid": mark.uuid})
                 deleted.append(arg)
         if deleted:
             text = "Deleted "
@@ -88,9 +85,8 @@ class BotHandler:
             text = "No message found."
         bot.sendMessage(update.message.chat_id, reply_to_message_id=reply, text=text)
 
-    @staticmethod
-    def list_mark(bot, update, args):
-        collection = pymongo.MongoClient().telegram.mark
+    def list_mark(self, bot, update, args):
+        collection = self.db.mark
         chat_id = update.message.chat_id
         result = collection.find({"chat_id": chat_id}).sort("add_time", pymongo.DESCENDING)
         totally_num = result.count()
@@ -125,10 +121,9 @@ class BotHandler:
                 continue
         bot.sendMessage(update.message.chat_id, reply_to_message_id=update.message.message_id, text=text)
 
-    @staticmethod
-    def show_mark(bot, update, args):
+    def show_mark(self, bot, update, args):
         chat_id = update.message.chat_id
-        result = BotHandler.get_message(chat_id, args)
+        result = self.get_message(chat_id, args)
         if result and result.count() > 0:
             mark = Mark(result[0])
             reply = mark.message_id
@@ -138,10 +133,9 @@ class BotHandler:
             text = "No message found."
         bot.sendMessage(update.message.chat_id, reply_to_message_id=reply, text=text)
 
-    @staticmethod
-    def info_mark(bot, update, args):
+    def info_mark(self, bot, update, args):
         chat_id = update.message.chat_id
-        result = BotHandler.get_message(chat_id, args)
+        result = self.get_message(chat_id, args)
         text = ""
         if result and result.count() > 0:
             mark = Mark(result[0])
@@ -165,7 +159,6 @@ class BotHandler:
 
     @staticmethod
     def help(bot, update):
-        chat_id = update.message.chat_id
         reply = update.message.message_id
         text = """
         \n
@@ -177,11 +170,9 @@ class BotHandler:
         """
         bot.sendMessage(update.message.chat_id, reply_to_message_id=reply, text=text)
 
-    @staticmethod
-    def message_handler(bot, update):
-        collection = pymongo.MongoClient().telegram.mark
+    def message_handler(self, bot, update):
+        collection = self.db.mark
         mark = Mark()
-        reply = 0
         if update.message.reply_to_message:
             reply = update.message.reply_to_message.message_id
             mark.chat_id = update.message.reply_to_message.chat_id
