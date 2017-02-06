@@ -5,7 +5,7 @@ import time
 import config
 import math
 import datetime
-from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
+from telegram.ext import Updater, CommandHandler, MessageHandler, BaseFilter
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -24,6 +24,18 @@ class Mark:
             self.add_time = mark['add_time']
             self.message = mark['message']
             self.message_id = mark['message_id']
+
+
+class MessageFilter(BaseFilter):
+    def filter(self, message):
+        if message.text.startswith('/'):
+            return False
+        for entity in message.entities:
+            if entity.type == "mention":
+                name = message.text[entity.offset:entity.offset + entity.length]
+                if name == config.name:
+                    return True
+        return False
 
 
 class BotHandler:
@@ -149,7 +161,7 @@ class BotHandler:
 
     @staticmethod
     def error(bot, update, error):
-        logger.warn('Update "%s" caused error "%s"' % (update, error))
+        logger.error('Update "%s" caused error "%s"' % (update, error))
 
     @staticmethod
     def help(bot, update):
@@ -164,18 +176,6 @@ class BotHandler:
         Use \\infom [message_id]/[uuid] to show that message info.\n
         """
         bot.sendMessage(update.message.chat_id, reply_to_message_id=reply, text=text)
-
-    @staticmethod
-    def message_filter(update):
-        message = update.message
-        if message.text.startswith('/'):
-            return False
-        for entity in message.entities:
-            if entity.type == "mention":
-                name = message.text[entity.offset:entity.offset + entity.length]
-                if name == config.name:
-                    return True
-        return False
 
     @staticmethod
     def message_handler(bot, update):
@@ -200,14 +200,14 @@ class BotHandler:
     def loop(self):
         dispatcher = self.updater.dispatcher
         dispatcher.bot.setWebhook(config.url)
-        dispatcher.addHandler(CommandHandler("addm", self.add_mark))
-        dispatcher.addHandler(MessageHandler([self.message_filter], self.message_handler))
-        dispatcher.addHandler(CommandHandler("showm", self.show_mark, pass_args=True))
-        dispatcher.addHandler(CommandHandler("listm", self.list_mark, pass_args=True))
-        dispatcher.addHandler(CommandHandler("infom", self.info_mark, pass_args=True))
-        dispatcher.addHandler(CommandHandler("delm", self.del_mark, pass_args=True))
-        dispatcher.addHandler(CommandHandler("help", self.help))
-        dispatcher.addErrorHandler(self.error)
+        dispatcher.add_handler(CommandHandler("addm", self.add_mark))
+        dispatcher.add_handler(MessageHandler(MessageFilter(), self.message_handler))
+        dispatcher.add_handler(CommandHandler("showm", self.show_mark, pass_args=True))
+        dispatcher.add_handler(CommandHandler("listm", self.list_mark, pass_args=True))
+        dispatcher.add_handler(CommandHandler("infom", self.info_mark, pass_args=True))
+        dispatcher.add_handler(CommandHandler("delm", self.del_mark, pass_args=True))
+        dispatcher.add_handler(CommandHandler("help", self.help))
+        dispatcher.add_error_handler(self.error)
         self.updater.start_webhook(listen=config.ip, port=config.port, url_path=config.secret,
                                    webhook_url=config.url)
         # self.updater.start_polling()
