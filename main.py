@@ -76,7 +76,7 @@ class BotHandler:
             result = self.get_message(chat_id, [arg])
             if result and result.count() == 1:
                 mark = Mark(result[0])
-                self.db.mark.mark.remove({"uuid": mark.uuid})
+                self.db.mark.remove({"uuid": mark.uuid})
                 deleted.append(arg)
         if deleted:
             text = "Deleted "
